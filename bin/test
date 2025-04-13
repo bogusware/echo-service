@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+set -e
+set -o pipefail
+
+DIR="$(cd "$(dirname "$0")"; pwd -P)"
+IMAGE_ID="$("${DIR}/build-test")"
+
+docker run -t --rm ${IMAGE_ID}

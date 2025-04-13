@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+set -e
+set -o pipefail
+
+IIDFILE="$(mktemp)"
+
+trap 'echo "Cleaning up ${IIDFILE}" >&2; rm -f "${IIDFILE}"' EXIT
+
+docker build --target test --iidfile "${IIDFILE}" .
+IMAGE_ID=$(<"${IIDFILE}")
+
+echo "${IMAGE_ID}"
