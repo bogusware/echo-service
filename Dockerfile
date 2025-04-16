@@ -63,5 +63,5 @@ COPY --from=build ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY --from=build /app/src /app/src
 
 EXPOSE 8000
-ENTRYPOINT ["uvicorn", "--host", "0.0.0.0", "echo.main:app"]
+ENTRYPOINT ["python", "-m", "echo.main", "--host", "0.0.0.0"]
 
