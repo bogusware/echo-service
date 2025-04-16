@@ -1,0 +1,19 @@
+{
+  "packages": [
+    "python@3.12",
+    "poetry@2.1.2"
+  ],
+  "services": {},
+  "shell": {
+    "init_hook": [
+      "poetry config virtualenvs.in-project true",
+      "poetry install --with dev",
+      "eval $(poetry env activate)"
+    ],
+    "scripts": {
+      "run_test": "poetry run python -m main",
+      "test": "poetry run pytest --cov=src --cov-report=term-missing"
+    }
+  }
+}
+
