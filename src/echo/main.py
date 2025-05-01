@@ -50,7 +50,7 @@ def main():
     parser.add_argument("--delay", type=float, default=0.0)
     args = parser.parse_args()
 
-    app = make_app(args.text, args.error_rate)
+    app = make_app(args.text, args.error_rate, args.delay)
     uvicorn.run(app, host=args.host, port=args.port)
 
 if __name__ == "__main__":
