@@ -7,7 +7,15 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Route
 
-def make_app(default_text: str, error_rate: float = 0.0, delay: float = 0.0) -> Starlette:
+DEFAULT_ERROR_RATE = 0.0
+DEFAULT_DELAY = 0.0
+
+def make_app(
+    default_text: str,
+    error_rate: float = DEFAULT_ERROR_RATE,
+    delay: float = DEFAULT_DELAY
+) -> Starlette:
+
     def roll() -> bool:
         return random.random() < error_rate
 
