@@ -6,6 +6,7 @@ from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Route
+from prometheus_fastapi_instrumentator import Instrumentator
 
 DEFAULT_ERROR_RATE = 0.0
 DEFAULT_DELAY = 0.0
@@ -59,6 +60,8 @@ def main():
     args = parser.parse_args()
 
     app = make_app(args.text, args.error_rate, args.delay)
+    _ = Instrumentator().instrument(app).expose(app)
+
     uvicorn.run(app, host=args.host, port=args.port)
 
 if __name__ == "__main__":
