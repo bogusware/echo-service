@@ -18,6 +18,8 @@ DEFAULT_RESPONSE_BYTES = 0
 DEFAULT_RESPONSE_JITTER = 0
 
 
+# Bogus change
+
 def make_app(
     default_text: str,
     error_rate: float = DEFAULT_ERROR_RATE,
