@@ -43,7 +43,7 @@ def make_app(
         jitter_bytes = random.randint(-response_jitter, response_jitter) if response_jitter > 0 else 0
         final_size = max(0, response_bytes + jitter_bytes)
         if final_size > 0:
-            content += b"x" * final_size
+            content += b" " * final_size
         return Response(content=content, status_code=status)
 
     async def handler(request: Request) -> Response:
