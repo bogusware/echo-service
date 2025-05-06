@@ -1,5 +1,7 @@
 import argparse
+import asyncio
 import random
+import sys
 import time
 import uvicorn
 from starlette.applications import Starlette
@@ -60,27 +62,57 @@ def make_app(
 
     return Starlette(debug=True, routes=[
         Route("/", handler, methods=["GET", "POST"]),
-        Route("/health", handler, methods=["GET", "HEAD"]),
     ])
 
+def make_diagnostics_app(instrumentator: Instrumentator) -> Starlette:
+    async def healthcheck(_: Request) -> Response:
+        return Response("ok")
 
-def main():
+    app = Starlette(routes=[
+        Route("/health", healthcheck, methods=["GET", "HEAD"]),
+    ])
+
+    _ = instrumentator.expose(app, include_in_schema=False, should_gzip=True)
+    return app
+
+
+class Namespace(argparse.Namespace):
+    text: str              # pyright:  ignore[reportUninitializedInstanceVariable]
+    host: str              # pyright:  ignore[reportUninitializedInstanceVariable]
+    port: int              # pyright:  ignore[reportUninitializedInstanceVariable]
+    diagnostics_host: str              # pyright:  ignore[reportUninitializedInstanceVariable]
+    diagnostics_port: int              # pyright:  ignore[reportUninitializedInstanceVariable]
+    error_rate: int        # pyright:  ignore[reportUninitializedInstanceVariable]
+    error_types: list[int] # pyright:  ignore[reportUninitializedInstanceVariable]
+    delay: float           # pyright:  ignore[reportUninitializedInstanceVariable]
+    jitter: float          # pyright:  ignore[reportUninitializedInstanceVariable]
+    latency_scale: float   # pyright:  ignore[reportUninitializedInstanceVariable]
+    response_bytes: int    # pyright:  ignore[reportUninitializedInstanceVariable]
+    response_jitter: int   # pyright:  ignore[reportUninitializedInstanceVariable]
+
+
+
+async def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--text", default="Hello, World!")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
 
-    parser.add_argument("--error-rate", type=float, default=DEFAULT_ERROR_RATE)
-    parser.add_argument("--error-types", nargs="+", type=int, default=DEFAULT_ERROR_TYPES)
+    _ = parser.add_argument("--text", default="Hello, World!")
+    _ = parser.add_argument("--host", default="127.0.0.1")
+    _ = parser.add_argument("--port", type=int, default=8000)
 
-    parser.add_argument("--delay", type=float, default=DEFAULT_DELAY)
-    parser.add_argument("--jitter", type=float, default=DEFAULT_JITTER)
-    parser.add_argument("--latency-scale", type=float, default=DEFAULT_LATENCY_SCALE)
+    _ = parser.add_argument("--diagnostics-host", default="127.0.0.1")
+    _ = parser.add_argument("--diagnostics-port", type=int, default=8001)
 
-    parser.add_argument("--response-bytes", type=int, default=DEFAULT_RESPONSE_BYTES)
-    parser.add_argument("--response-jitter", type=int, default=DEFAULT_RESPONSE_JITTER)
+    _ = parser.add_argument("--error-rate", type=float, default=DEFAULT_ERROR_RATE)
+    _ = parser.add_argument("--error-types", nargs="+", type=int, default=DEFAULT_ERROR_TYPES)
 
-    args = parser.parse_args()
+    _ = parser.add_argument("--delay", type=float, default=DEFAULT_DELAY)
+    _ = parser.add_argument("--jitter", type=float, default=DEFAULT_JITTER)
+    _ = parser.add_argument("--latency-scale", type=float, default=DEFAULT_LATENCY_SCALE)
+
+    _ = parser.add_argument("--response-bytes", type=int, default=DEFAULT_RESPONSE_BYTES)
+    _ = parser.add_argument("--response-jitter", type=int, default=DEFAULT_RESPONSE_JITTER)
+
+    args = parser.parse_args(namespace=Namespace())
 
     app = make_app(
         default_text=args.text,
@@ -93,9 +125,23 @@ def main():
         response_jitter=args.response_jitter,
     )
 
-    _ = Instrumentator().instrument(app).expose(app)
-    uvicorn.run(app, host=args.host, port=args.port)
+    insrumentator = Instrumentator().instrument(app, metric_namespace='myproject', metric_subsystem='myservice')
+    diagnostics_app = make_diagnostics_app(insrumentator)
 
+    async def run_server(host: str, port: int, app_ref: Starlette):
+        server_config = uvicorn.Config(app_ref, port=port, host=host)
+        server = uvicorn.Server(server_config)
+        await server.serve()
+
+    _ = await asyncio.gather(
+        run_server(args.host, args.port, app),
+        run_server(args.diagnostics_host, args.diagnostics_port, diagnostics_app)
+    )
 
 if __name__ == "__main__":
-    main()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except:
+        raise
