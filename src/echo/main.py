@@ -10,6 +10,9 @@ from starlette.responses import Response
 from starlette.routing import Route
 from prometheus_fastapi_instrumentator import Instrumentator
 
+HEALTH_RESPONSE="ok"
+ADDITIONAL_RESPONSE_TEXT=""
+
 # Default values
 DEFAULT_ERROR_RATE = 0.0
 DEFAULT_DELAY = 0.0
@@ -52,7 +55,7 @@ def make_app(
         content = (
             await request.body()
             if request.method == "POST"
-            else default_text.encode()
+            else f"{default_text}\n{ADDITIONAL_RESPONSE_TEXT}".encode()
         )
 
         status = random.choice(error_types) if roll_error() else 200
@@ -66,7 +69,7 @@ def make_app(
 
 def make_diagnostics_app(instrumentator: Instrumentator) -> Starlette:
     async def healthcheck(_: Request) -> Response:
-        return Response("ok")
+        return Response(HEALTH_RESPONSE)
 
     app = Starlette(routes=[
         Route("/health", healthcheck, methods=["GET", "HEAD"]),
