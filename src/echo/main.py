@@ -125,7 +125,7 @@ async def main():
         response_jitter=args.response_jitter,
     )
 
-    insrumentator = Instrumentator().instrument(app, metric_namespace='myproject', metric_subsystem='myservice')
+    insrumentator = Instrumentator().instrument(app, metric_namespace='echo-service', metric_subsystem='server')
     diagnostics_app = make_diagnostics_app(insrumentator)
 
     async def run_server(host: str, port: int, app_ref: Starlette):
