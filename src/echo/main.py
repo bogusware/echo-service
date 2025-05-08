@@ -11,7 +11,7 @@ from starlette.routing import Route
 from prometheus_fastapi_instrumentator import Instrumentator
 
 HEALTH_RESPONSE="ok"
-ADDITIONAL_RESPONSE_TEXT="hello for Stobie and his incessant feature requests!"
+ADDITIONAL_RESPONSE_TEXT=""
 
 # Default values
 DEFAULT_ERROR_RATE = 0.0
