@@ -1,0 +1,12 @@
+name: Dynamic job test
+
+on:
+  workflow_call: ~
+
+# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
+jobs:
+  run-dynamic:
+    strategy:
+      matrix:
+        job-name: ["job-a", "job-b"]
+    uses: bogusware/echo-service/.github/workflows/dynamic-jobs/${{ matrix.job-name }}.yaml

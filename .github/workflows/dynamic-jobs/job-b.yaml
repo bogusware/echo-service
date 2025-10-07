@@ -1,0 +1,12 @@
+name: Dynamic Job B
+
+on:
+  workflow_call: ~
+
+# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
+jobs:
+  run-dynamic:
+    runs_on: ubuntu-latest
+    steps:
+      - name: job-b-step-1
+        run: echo "Job B is done!"
